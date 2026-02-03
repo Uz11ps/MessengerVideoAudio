@@ -1,85 +1,16 @@
-buildscript {
-    ext.kotlin_version = '2.2.20'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.4'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
-        localProperties.load(reader)
-    }
-}
-
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
-}
-
 allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url "https://storage.googleapis.com/download.flutter.io"
-        }
-    }
-    
-    // Определяем flutter для всех проектов (включая плагины)
-    ext.flutter = [
-        compileSdkVersion: 35,
-        minSdkVersion: 23,
-        targetSdkVersion: 35,
-        versionCode: 1,
-        versionName: '1.0',
-        ndkVersion: null
-    ]
-}
-
-subprojects {
-    project.configurations.all {
-        resolutionStrategy {
-            eachDependency { details ->
-                if (details.requested.group == 'org.jetbrains.kotlin') {
-                    details.useVersion "$kotlin_version"
-                }
-                // Принудительно используем совместимую версию kotlin-build-tools-impl
-                if (details.requested.name == 'kotlin-build-tools-impl') {
-                    details.useVersion "$kotlin_version"
-                }
-            }
-            // Заменяем старую версию kotlin-build-tools-impl на новую
-            dependencySubstitution {
-                substitute module('org.jetbrains.kotlin:kotlin-build-tools-impl:1.7.10') using module("org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlin_version")
-            }
-        }
-    }
-    
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android {
-                if (namespace == null) {
-                    namespace project.group
-                }
-            }
-        }
     }
 }
 
-rootProject.buildDir = '../build'
+rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
-    project.evaluationDependsOn(':app')
+    project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {

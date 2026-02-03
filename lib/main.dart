@@ -1,98 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:messenger_app/core/api_service.dart';
-import 'package:messenger_app/data/repositories/auth_repository.dart';
-import 'package:messenger_app/data/repositories/chat_repository.dart';
-import 'package:messenger_app/logic/blocs/auth_bloc.dart';
-import 'package:messenger_app/logic/blocs/chat_bloc.dart';
-import 'package:messenger_app/presentation/screens/auth_screen.dart';
-import 'package:messenger_app/presentation/screens/home_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Note: Firebase initialization requires google-services.json (Android) and GoogleService-Info.plist (iOS)
-  // For this task, we assume they will be provided by the user as per the contract.
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint('Firebase initialization failed: $e');
-  }
-
+void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
-  State<MyApp> createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // TRY THIS: Try running your application with "flutter run". You'll see
+        // the application has a purple toolbar. Then, without quitting the app,
+        // try changing the seedColor in the colorScheme below to Colors.green
+        // and then invoke "hot reload" (save your changes or press the "hot
+        // reload" button in a Flutter-supported IDE, or press "r" if you used
+        // the command line to start the app).
+        //
+        // Notice that the counter didn't reset back to zero; the application
+        // state is not lost during the reload. To reset the state, use hot
+        // restart instead.
+        //
+        // This works for code too, not just values: Most code changes can be
+        // tested with just a hot reload.
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  late final ApiService apiService;
-  late final AuthRepository authRepository;
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
 
   @override
-  void initState() {
-    super.initState();
-    apiService = ApiService();
-    authRepository = AuthRepository(apiService: apiService);
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider.value(value: authRepository),
-        RepositoryProvider.value(value: apiService),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) => AuthBloc(authRepository: authRepository)..add(AuthStarted()),
-          ),
-        ],
-        child: MaterialApp(
-          title: 'Messenger App',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            useMaterial3: true,
-          ),
-          home: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              print('Main: Current state is $state');
-              if (state is AuthAuthenticated) {
-                print('Main: Navigating to HomeScreen for user ${state.user.id}');
-                
-                return RepositoryProvider(
-                  create: (context) {
-                    final currentToken = apiService.token ?? '';
-                    print('Main: Creating ChatRepository with token: $currentToken');
-                    return ChatRepository(
-                      apiService: apiService,
-                      currentUserId: state.user.id,
-                      token: currentToken,
-                    );
-                  },
-                  child: BlocProvider(
-                    create: (context) => ChatBloc(
-                      chatRepository: context.read<ChatRepository>(),
-                    ),
-                    child: const HomeScreen(),
-                  ),
-                );
-              }
-              if (state is AuthUnauthenticated || state is AuthFailure || state is AuthOtpSent) {
-                return const AuthScreen();
-              }
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            },
-          ),
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+      ),
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'You have pushed the button this many times:',
+            ),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
